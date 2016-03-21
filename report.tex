@@ -5,6 +5,7 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{url}
+\usepackage{hyperref}
 \begin{document}
 	\title{A Software To Maintain Modulflex Topologies}
 	\author{Jan-Philipp Schleutker, B.Sc.\\Falk Wilke, B.Sc.}
@@ -21,16 +22,82 @@
 	
 	We started with JSON as a file format for the node server (designed by Trenz) and its subcomponents (``topology"). 
 	As a JSON files describes an entire node server and we should enable it to be created, edited and saved. From this JSON file it shall be possible to create a C-header file which can be included into the source code of the Modulflex Deamon-Thread. This thread handles communication between a master (oversees and controls the node sever) and the node server.
-	To achieve that we thought on how to handle it conveniently. Eventually we came up with the idea to use a template engine and it turned out that Mustache\footnote{\url{https://mustache.github.io/}} could be used. This engine splits up logic and generation. Mustache does not support logic within templates except basic value checking (which means to test whether a value is present). This leads to an improved maintainability because simple changes in the artifacts do not imply to alter the source code itself. Merely the template file is touched. \\
+	To achieve that we thought on how to handle it conveniently. Eventually we came up with the idea to use a template engine and it turned out that Mustache\footnote{\url{https://mustache.github.io/}} could be used. This engine splits up logic and generation. Mustache does not support logic within templates except basic value checking (which means to test whether a value is present). This leads to an improved maintainability because simple changes in the artifacts do not imply to alter the source code itself. Barely the template file is touched. \\
 	To build our system we did the following:
 	
 	\begin{itemize}
-		\item 
+		\item create a template file (for Mustache) that describes the structure of the header file
+		\item build up a graphical user interface (as described in \ref{two}) that enables the user to either create a new JSON file or load an existing one
+		\item through the UI values of the JSON file can be viewed and changed
+		\item when done they can be stored which means that a new header file is created  
+	\end{itemize}
+	
+	Some problems we encountered:
+	\begin{itemize}
+		\item as this was a project at its beginning we often faced major changes in the structure 
+		\item we aimed to map the JSON file into our UI, especially showing deeply nested structures was a problem (see \ref{two})
+		\item at some points we were not sure about what the header file is for (or what it does)
+		\item JSON does not guarantee the order of mapped entries which leads to problems when generating a header since there the order of definitions matters 
 	\end{itemize}
 	
 	\section{Python And PyQt}
+	\label{two}
+	
+	To have a platform-independent user interface we decided to use Python 3.4 and PyQt5. Python is a scripting language that is capable to rapidly develop a prototype. Qt was used because it is a common framework that is available for virtually all platforms and maintained by a huge community of developers.\\
+	To build our system we did the following:
+	
+	\begin{itemize}
+		\item build a graphical user interface with the Qt Designer
+		\item as Qt is a quite complex system, thus we devoted much time to dig into it by reading tutorials 
+		\item write code for the underlying system which includes controllers and models in Python
+		\item also including the PyStache library into the backend 
+		\item test it
+	\end{itemize}
+	
+	Some problems that arose:
+	\begin{itemize}
+		\item as mentioned above Qt is a complex system thus we spent time to learn it
+		\item we wanted to map the structure of the JSON file (esp. the nested elements) into a Qt widget which was difficult 
+		\begin{itemize}
+			\item Qt standard widgets have big problems with nested data structures
+			\item so we could not use the designer for this part of the user interface 
+		\end{itemize}
+		\item PyQt is somewhat hardly documented, there is only the C++ API which can be helpful but often is not as Python does some things differently
+		\item deploying is not such a lightweight task since there has to be a PyQt installation on the target system, only Python is not enough
+	\end{itemize}
 	
 	\section{XML and JavaFX}
+	At some point it turned out that the topology can be easier defined by XML documents that are validated against XSD ones. The XSD are non-static and can change over time. Therefore we had to build a system that creates a user interface depending on the XSD parsed. 
+	The first approach was to use XSLT to generate HTML forms combined with some JavaScript code. This is a common approach to deal with transformation of valid XML documents (XSDs are XML documents). Also almost every web browser (e.g. Firefox) is capable of handling XSLT 1.1.
+	So for this the underlying system does not matter. Yet it was decided that using web forms is not the right way since it should be possible to directly edit generated artifacts and have that changes mirrored to the browser.\par
 	
-	\chapter{Conclusion}
+	To have it a little more lightweight and due to a lack of experience in PyQt we decided to use JavaFX as the UI framework. As we started almost from scratch this did not hurt any progress. Also it is part of the Java standard library. Deploying it merely means to deliver a jar file. \par 
+	
+	Two library were developed. One is to extract forms from a XSD file. It gets such a file, parses it and yields JavaFX components. 
+	The other library is identical to the designer tool and includes the former one. Depedency management was done by Maven which is a neat tool.\\ 
+	To build our system we did the following:
+	
+	\begin{itemize}
+		\item developing the form lib as mentioned above
+		\begin{itemize}
+			\item developed a structure which uses registered generators and applys them to a given element of a XSD
+			\item those generators handle all generation of GUI-elements and can call the "parent" strcuture for child elements
+			\item they add all generated GUI-elements to a parent element and create a linked \textit{XSDModel} in terms of inputfields and values 
+			\item to get actual JavaFX-Nodes a nested \textit{INodeGenerator} is used (this divides up parsing and the appearance of created elements)
+			\item as mentioned earlier values should be loaded from generated artifacts, this was achieved by introducing a \textit{IValueGenerator} which can create values for the model on demand
+		\end{itemize}
+		\item developing the tool the user interacts with
+		\begin{itemize}
+			\item build a GUI that shows the user how the current topology looks like 
+			\item enable to edit and save the data 
+			\item create an underlying model that can be stored persistently by JAXB (XML output)
+			\item connect everything by using an event driven style 
+		\end{itemize}
+	\end{itemize}
+	
+	Some problems that appeared:
+	\begin{itemize}
+		\item parsing XSDs is fragile, i.e. there can always be XSD files the parser cannot handle 
+		\item values are only stored in attributes because text nodes lead to difficulties regarding loading 
+	\end{itemize}
 \end{document}
