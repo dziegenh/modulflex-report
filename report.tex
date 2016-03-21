@@ -4,6 +4,7 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{url}
 \begin{document}
 	\title{A Software To Maintain Modulflex Topologies}
 	\author{Jan-Philipp Schleutker, B.Sc.\\Falk Wilke, B.Sc.}
@@ -14,9 +15,22 @@
 	\end{abstract}
 	\tableofcontents
 	
-	\chapter{JSON And Mustache}
+	\chapter{Report}
 	
-	\chapter{Python And PyQt}
+	\section{JSON And Mustache}
 	
-	\chapter{XML and JavaFX}
+	We started with JSON as a file format for the node server (designed by Trenz) and its subcomponents (``topology"). 
+	As a JSON files describes an entire node server and we should enable it to be created, edited and saved. From this JSON file it shall be possible to create a C-header file which can be included into the source code of the Modulflex Deamon-Thread. This thread handles communication between a master (oversees and controls the node sever) and the node server.
+	To achieve that we thought on how to handle it conveniently. Eventually we came up with the idea to use a template engine and it turned out that Mustache\footnote{\url{https://mustache.github.io/}} could be used. This engine splits up logic and generation. Mustache does not support logic within templates except basic value checking (which means to test whether a value is present). This leads to an improved maintainability because simple changes in the artifacts do not imply to alter the source code itself. Merely the template file is touched. \\
+	To build our system we did the following:
+	
+	\begin{itemize}
+		\item 
+	\end{itemize}
+	
+	\section{Python And PyQt}
+	
+	\section{XML and JavaFX}
+	
+	\chapter{Conclusion}
 \end{document}
